@@ -1,2 +1,2 @@
 # ArticleSpider123
-python打造分布式爬虫引擎源码笔记
+课程源码笔记: Python分布式爬虫打造搜索引擎Scrapy精讲
