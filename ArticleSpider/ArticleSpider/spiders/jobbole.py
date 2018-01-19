@@ -4,6 +4,8 @@ import scrapy
 import sys
 reload(sys)
 from scrapy.http import Request
+from  ArticleSpider.items import JobBoleArticleItem
+
 try:
     import urlparse  # python2
 except:
@@ -27,7 +29,7 @@ class JobboleSpider(scrapy.Spider):
             post_url = post_node.css('::attr(href)').extract_first('')
             # Request(url=urlparse.urljoin(response.url, post_url), callback=self.parse_detial)  如果href里url不带域名记得加域名,urlparse确保了href后的值有主域名
             print urlparse.urljoin(response.url, post_url)
-            yield Request(url=urlparse.urljoin(response.url, post_url), meta={'front_imgage_url': image_url}, callback=self.parse_detial)
+            yield Request(url=urlparse.urljoin(response.url, post_url), meta={'front_image_url': image_url}, callback=self.parse_detial)
             # yield Request(url=parse.urljoin(response.url, post_url), callback=self.parse_detial) # python3
 
         # 提取下一页的url并交给scrapy进行下载
@@ -41,6 +43,11 @@ class JobboleSpider(scrapy.Spider):
         """
         提取文章的具体字段
         """
+        article_item = JobBoleArticleItem()
+
+
+
+
         #-------------------------通过xpath选择器提取字段-------------------------
         # title = response.xpath('//*[@id="post-110287"]/div[1]/h1/text()').extract()[0] # 文章标题
         #                                                                  #extract_first('NoneArray') 防止数组为空抛出异常 ''为传入的默认值
@@ -67,7 +74,7 @@ class JobboleSpider(scrapy.Spider):
         # tags = ','.join(tag_list) # 文章类型
 
         #-------------------------通过css选择器提取字段-------------------------
-        front_imgage_url = response.meta.get('front_imgage_url', '') # 对字典使用get方法,设置默认值为空,防止抛异常
+        front_image_url = response.meta.get('front_image_url', '') # 对字典使用get方法,设置默认值为空,防止抛异常
         title = response.css(".entry-header h1::text").extract()[0]
         create_date = response.css("p.entry-meta-hide-on-mobile::text").extract()[0].strip().replace('·','').strip() # py2如果不重置默认编码,这里replace会报错
         praise_nums = response.css("span[class~='vote-post-up'] h10::text").extract()[0]
@@ -88,6 +95,18 @@ class JobboleSpider(scrapy.Spider):
         tag_list = [element for element in tag_list if not element.strip().endswith(u'评论')]  # 去掉列表中以'评论'结尾的元素
         tags = ','.join(tag_list)
 
+        article_item['title'] = title
+        article_item['url'] = response.url
+        article_item['create_date'] = create_date
+        article_item['front_image_url'] = [front_image_url]
+        article_item['praise_nums'] = praise_nums
+        article_item['fav_nums'] = fav_nums
+        article_item['comment_nums'] = comment_nums
+        article_item['tags'] = tags
+        article_item['content'] = content
+        yield article_item
+
+
 
 
         print title
@@ -96,6 +115,7 @@ class JobboleSpider(scrapy.Spider):
         print fav_nums
         print comment_nums
         print tags
+        print front_image_url
         print content[:500].replace(u'\xa0', u' ')  # \xa0在gbk代表空格
 
 

@@ -8,7 +8,7 @@
 #     http://doc.scrapy.org/en/latest/topics/settings.html
 #     http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 #     http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
-
+import os
 BOT_NAME = 'ArticleSpider'
 
 SPIDER_MODULES = ['ArticleSpider.spiders']
@@ -64,9 +64,13 @@ ROBOTSTXT_OBEY = False # 不遵守robots.txt
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'ArticleSpider.pipelines.ArticlespiderPipeline': 300,
-#}
+ITEM_PIPELINES = {
+    'ArticleSpider.pipelines.ArticlespiderPipeline': 300,
+    'scrapy.pipelines.images.ImagesPipeline': 1,
+}
+IMAGES_URLS_FIELD = 'front_image_url'
+project_dir = os.path.abspath(os.path.dirname(__file__))
+IMAGES_STORE = os.path.join(project_dir, 'images')
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html

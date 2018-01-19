@@ -8,4 +8,5 @@
 
 class ArticlespiderPipeline(object):
     def process_item(self, item, spider):
+        # settings里取消pipeline注释
         return item
