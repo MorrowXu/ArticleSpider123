@@ -21,11 +21,13 @@ class JobboleSpider(scrapy.Spider):
         2. 获取下一页的url并交给scrapy进行下载, 下载完成后交给parse函数
         """
         # 解析列表页中的所有文章url并交给scrapy下载后进行解析
-        post_urls = response.css('#archive .floated-thumb .post-thumb a::attr(href)').extract()
-        for post_url in post_urls:
-            #  Request(url=urlparse.urljoin(response.url, post_url), callback=self.parse_detial)  如果href里url不带域名记得加域名,urlparse确保了href后的值有主域名
+        post_node = response.css('#archive .floated-thumb .post-thumb a')
+        for post_url in post_node:
+            image_url = post_url.css("img::attr(src)").extract_first('')
+            post_url = post_node.css('::attr(href)').extract_first('')
+            # Request(url=urlparse.urljoin(response.url, post_url), callback=self.parse_detial)  如果href里url不带域名记得加域名,urlparse确保了href后的值有主域名
             print urlparse.urljoin(response.url, post_url)
-            yield Request(url=urlparse.urljoin(response.url, post_url), callback=self.parse_detial)
+            yield Request(url=urlparse.urljoin(response.url, post_url), meta={'front_imgage_url': image_url}, callback=self.parse_detial)
             # yield Request(url=parse.urljoin(response.url, post_url), callback=self.parse_detial) # python3
 
         # 提取下一页的url并交给scrapy进行下载
@@ -33,6 +35,7 @@ class JobboleSpider(scrapy.Spider):
         if next_url:
             print urlparse.urljoin(response.url, next_url)
             yield Request(url=urlparse.urljoin(response.url, next_url), callback=self.parse)
+
 
     def parse_detial(self, response):
         """
@@ -64,6 +67,7 @@ class JobboleSpider(scrapy.Spider):
         # tags = ','.join(tag_list) # 文章类型
 
         #-------------------------通过css选择器提取字段-------------------------
+        front_imgage_url = response.meta.get('front_imgage_url', '') # 对字典使用get方法,设置默认值为空,防止抛异常
         title = response.css(".entry-header h1::text").extract()[0]
         create_date = response.css("p.entry-meta-hide-on-mobile::text").extract()[0].strip().replace('·','').strip() # py2如果不重置默认编码,这里replace会报错
         praise_nums = response.css("span[class~='vote-post-up'] h10::text").extract()[0]
